@@ -1,3 +1,4 @@
+import 'package:expense_app/widgets/chart/chart.dart';
 import 'package:expense_app/widgets/expenses_list/expenses_list.dart';
 import 'package:expense_app/models/expense.dart';
 import 'package:expense_app/widgets/new_expense.dart';
@@ -30,6 +31,7 @@ class _ExpensesState extends State<Expenses> {
 
   void _openAddExpenseOverlay() {
     showModalBottomSheet(
+      useSafeArea: true,
       isScrollControlled: true,
       context: context,
       builder: (ctx) => NewExpense(
@@ -68,6 +70,8 @@ class _ExpensesState extends State<Expenses> {
 
   @override
   Widget build(BuildContext context) {
+    final width = (MediaQuery.of(context).size.width);
+
     Widget mainContent = const Center(
       child: Text('no expense found. Start adding some!'),
     );
@@ -90,17 +94,50 @@ class _ExpensesState extends State<Expenses> {
           ),
         ],
       ),
-      body: Column(
-        children: [
-          // Toolbar with the add button
-          const Text('Hello Anh Van, Tháng 8 trộm vía trộm vía'),
-          const Text('The chart'),
-          const Text('Expense List...'),
-          Expanded(
-            child: mainContent,
-          ),
-        ],
-      ),
+      body: width < 600
+          ? Column(
+              children: [
+                // Toolbar with the add button
+                Chart(expenses: _registerExpenses),
+                Expanded(
+                  child: mainContent,
+                ),
+              ],
+            )
+          : Row(
+              children: [
+                Expanded(
+                  child: Chart(expenses: _registerExpenses),
+                ),
+                Expanded(
+                  child: mainContent,
+                ),
+              ],
+            ),
     );
+  }
+}
+
+class ExpenseBucket {
+  const ExpenseBucket({
+    required this.category,
+    required this.expenses,
+  });
+
+  ExpenseBucket.forCategory(List<Expense> allExpenses, this.category)
+      : expenses = allExpenses
+            .where((expense) => expense.category == category)
+            .toList();
+
+  final Category category;
+  final List<Expense> expenses;
+
+  double get totalExpense {
+    double sum = 0;
+
+    for (final expense in expenses) {
+      sum += expense.amount;
+    }
+    return sum;
   }
 }
